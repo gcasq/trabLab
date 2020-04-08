@@ -194,8 +194,8 @@ void poediscaluno(aluno *al, disciplina *disc)
 	printf("digite o codigo do aluno que quer: ");scanf("%d",&codal);
 	printf("digite o codigo da disciplina que quer: ");scanf("%d",&coddisc);
 
-	while(al->cod!=codal){al=al->prox;	if(al==NULL){printf("aluno nao encontrado");return;}}					//ja tenho o aluno
-	while(disc->cod!=coddisc){disc=disc->prox;	if(disc==NULL){printf("disciplina nao encontrada");return;}}	//ja tenho a disc
+	while(al->cod!=codal){al=al->prox;	if(al==NULL){printf("aluno nao encontrado\n");return;}}					//ja tenho o aluno
+	while(disc->cod!=coddisc){disc=disc->prox;	if(disc==NULL){printf("disciplina nao encontrada\n");return;}}	//ja tenho a disc
 
 	if(al->qtde == MAXDISC){printf("aluno cheio de materia\n");return;}
 	if(disc->qtde == MAXAL){printf("disciplina lotada\n");return;}
@@ -205,23 +205,31 @@ void poediscaluno(aluno *al, disciplina *disc)
 
 	return;
 }
-/*
+
 void tiradiscaluno(aluno *al, disciplina *disc)
 {	
-	int codal,coddisc;
+	int codal,coddisc,k;
 	printf("digite o codigo do aluno que quer: ");scanf("%d",&codal);
 	printf("digite o codigo da disciplina que quer retirar: ");scanf("%d",&coddisc);
 
 	while(al->cod!=codal){al=al->prox;	if(al==NULL){printf("aluno nao encontrado");return;}}					//ja tenho o aluno
 	while(disc->cod!=coddisc){disc=disc->prox;	if(disc==NULL){printf("disciplina nao encontrada");return;}}	//ja tenho a disc
 
-	if(al->qtde==0){printf("o aluno nao tem disciplinas\n");return;}
-	al->disc[al->qtde]=*disc;al->qtde++;
-	if(disc->qtde==0){printf("nao ha disciplinas pra tirar\n");return;}
-	disco->al[disc->qtde]=*al;disc->qtde++;
+	for(k=0;k<=al->qtde;k++)
+	{	printf("%d ",k);
+		if(al->disc + k==disc->nome){break;}
+	}
+	strcpy(al->disc[k], al->disc[al->qtde-1]); al->qtde--; //tirando a disc do aluno (meio xereu)
+
+	for(k=0;k<=disc->qtde;k++)
+	{
+		if(disc->al + k==al->nome){break;}
+	}
+	strcpy(disc->al[k], disc->al[disc->qtde-1]); disc->qtde--; //tirando aluno da disc
+
 	return;
 }
-*/
+
 
 void printaluno(aluno *al, int cod)
 {
@@ -236,6 +244,18 @@ void printaluno(aluno *al, int cod)
 	return;
 }
 
+void printdisc(disciplina *disc, int cod)
+{
+	while(disc->cod!=cod){disc=disc->prox; if(disc==NULL){printf("nao encontrou o aluno\n");return;} }
+	printf("nome: %s\n",disc->nome);
+	printf("prof: %s\n",disc->prof);
+	printf("codigo: %d\n",disc->cod);
+	printf("creditos: %d\n",disc->creditos);
+	printf("alunos cadastrados: \n");
+	for(int k=0;k<=disc->qtde;k++){printf("%s\n",disc->al + k);}
+	return;
+}
+
 int main()
 {
 	int d=1,per=0,auxx;
@@ -244,7 +264,10 @@ int main()
 	while(d!=0)
 	{
 		printf("\ndigite a opcao pretendida: ");
-		printf("\n1)mudar periodo(formato xxxx.x)\n2)inserir aluno\n3)remover aluno\n4)inserir disciplina para um aluno\n5)remover disciplina para um aluno\n6)cadastrar disciplina\n7)excluir disciplina\n8)listar alunos\n9)listardisciplinas\n10)listarcaracaluno\n0)finalizar programa   :");
+		printf("\n1)mudar periodo(formato xxxx.x)\n2)inserir aluno\n3)remover aluno\n4)inserir disciplina para um aluno\n");
+		printf("5)remover disciplina para um aluno\n6)cadastrar disciplina\n7)excluir disciplina\n");
+		printf("8)listar alunos\n9)listardisciplinas\n10)listarcaracaluno\n11)listcaracdisc\n0)finalizar programa   :");
+		
 		scanf("%d",&d);
 		switch(d){
 			case 1:
@@ -263,7 +286,9 @@ int main()
 					if(period[per].headdisc==NULL){printf("nao ha disciplinas\n");break;} 
 					poediscaluno(period[per].headal,period[per].headdisc); break;
 			
-			case 5:  break;
+			case 5:  if(period[per].headal==NULL){printf("nao ha alunos\n");break;} 
+					if(period[per].headdisc==NULL){printf("nao ha disciplinas\n");break;} 
+					tiradiscaluno(period[per].headal,period[per].headdisc); break;
 			
 			case 6: inseredisc(&period[per]); break;
 			
@@ -279,6 +304,11 @@ int main()
 				if(period[per].headal==NULL){printf("nao ha aluno cadastrado\n");break;} 
 				printf("digite o codigo do aluno q quer: ");scanf("%d",&auxx);
 				printaluno(period[per].headal,auxx); break;
+
+			case 11:	
+					if(period[per].headdisc==NULL){printf("nao ha disciplina cadastrada\n");break;} 
+					printf("digite o codigo da disciplina q quer: ");scanf("%d",&auxx);
+					printdisc(period[per].headdisc,auxx);break;
 
 	       		}
 	}	
