@@ -1,19 +1,24 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
+#define MAXDISC 10
+#define MAXAL 50
 
 typedef struct s1{
 int cod;
 char nome[50],cpf[11];
-struct s2 *disc;
 struct s1 *prox;
+char disc[MAXDISC][50];
+int qtde;
 }aluno;	
 
 typedef struct s2{
 	int cod,creditos;
 	char nome[50], prof[50];
-	aluno *al;
 	struct s2 *prox;
+	int qtde;
+	char al[MAXAL][50];
+
 }disciplina;
 
 typedef struct s3{
@@ -39,6 +44,7 @@ void insereal(periodo *p)
 		strcpy(aux->cpf,cpf);
 		aux->cod=codigo;
 		aux->prox=NULL;
+		aux->qtde=0;
 		p->headal=aux;
 		return;
 	}
@@ -56,6 +62,7 @@ void insereal(periodo *p)
 		strcpy(aux->cpf,cpf);
 		aux->cod=codigo;
 		aux->prox=NULL;
+		aux->qtde=0;
 		al->prox=aux;
 		return;
 	}
@@ -123,6 +130,7 @@ void inseredisc(periodo *p)
 		aux->cod=codigo;
 		aux->creditos=creditos;
 		aux->prox=NULL;
+		aux->qtde=0;
 		p->headdisc=aux;
 		return;
 	}
@@ -141,6 +149,7 @@ void inseredisc(periodo *p)
 		aux->cod=codigo;
 		aux->creditos=creditos;
 		aux->prox=NULL;
+		aux->qtde=0;
 		disc->prox=aux;
 		return;
 	}
@@ -179,6 +188,54 @@ void excluidisc(periodo *p,int dis)//excluir atraves do codigo da disc
 	return;
 }
 
+void poediscaluno(aluno *al, disciplina *disc)
+{	
+	int codal,coddisc;
+	printf("digite o codigo do aluno que quer: ");scanf("%d",&codal);
+	printf("digite o codigo da disciplina que quer: ");scanf("%d",&coddisc);
+
+	while(al->cod!=codal){al=al->prox;	if(al==NULL){printf("aluno nao encontrado");return;}}					//ja tenho o aluno
+	while(disc->cod!=coddisc){disc=disc->prox;	if(disc==NULL){printf("disciplina nao encontrada");return;}}	//ja tenho a disc
+
+	if(al->qtde == MAXDISC){printf("aluno cheio de materia\n");return;}
+	if(disc->qtde == MAXAL){printf("disciplina lotada\n");return;}
+
+	strcpy(al->disc[al->qtde], disc->nome);al->qtde++;//adiciona a materia no vetor de string de disciplina do aluno
+	strcpy(disc->al[disc->qtde], al->nome);disc->qtde++;//adiciona o aluno no vetor de string de alunos da disciplina
+
+	return;
+}
+/*
+void tiradiscaluno(aluno *al, disciplina *disc)
+{	
+	int codal,coddisc;
+	printf("digite o codigo do aluno que quer: ");scanf("%d",&codal);
+	printf("digite o codigo da disciplina que quer retirar: ");scanf("%d",&coddisc);
+
+	while(al->cod!=codal){al=al->prox;	if(al==NULL){printf("aluno nao encontrado");return;}}					//ja tenho o aluno
+	while(disc->cod!=coddisc){disc=disc->prox;	if(disc==NULL){printf("disciplina nao encontrada");return;}}	//ja tenho a disc
+
+	if(al->qtde==0){printf("o aluno nao tem disciplinas\n");return;}
+	al->disc[al->qtde]=*disc;al->qtde++;
+	if(disc->qtde==0){printf("nao ha disciplinas pra tirar\n");return;}
+	disco->al[disc->qtde]=*al;disc->qtde++;
+	return;
+}
+*/
+
+void printaluno(aluno *al, int cod)
+{
+	while(al->cod!=cod){al=al->prox; if(al==NULL){printf("nao encontrou o aluno\n");return;} }
+	printf("nome: %s\n",al->nome);
+	printf("cpf: %s\n",al->cpf);
+	printf("codigo: %d\n",al->cod);
+	printf("disciplinas cadastradas: \n");
+	
+	for(int k=0;k<=al->qtde;k++){printf("%s\n",al->disc + k);}
+
+	return;
+}
+
 int main()
 {
 	int d=1,per=0,auxx;
@@ -200,22 +257,29 @@ int main()
 			
 			case 3:if(period[per].headal==NULL){printf("nao ha aluno para ser removido\n");} 
 					else{printf("digite o codigo do aluno que quer ser removido");scanf("%d",&auxx);
-						excluialuno(&period[per],auxx);}    break;
+						excluialuno(&period[per],auxx);}   break;
 			
-			case 4:  break;
+			case 4:  if(period[per].headal==NULL){printf("nao ha alunos\n");break;} 
+					if(period[per].headdisc==NULL){printf("nao ha disciplinas\n");break;} 
+					poediscaluno(period[per].headal,period[per].headdisc); break;
 			
 			case 5:  break;
 			
 			case 6: inseredisc(&period[per]); break;
 			
 			case 7:if(period[per].headdisc==NULL){printf("nao ha disciplina para ser removida\n");} 
-					else{printf("digite o codigo da disciplina que quer ser removida");scanf("%d",&auxx);
+				     else{printf("digite o codigo da disciplina que quer ser removida");scanf("%d",&auxx);
 					 excluidisc(&period[per],auxx);} break;
 			
 			case 8: listaluno(period[per].headal);break;
 
 			case 9: listdisciplina(period[per].headdisc); break;
 			
+			case 10: 
+				if(period[per].headal==NULL){printf("nao ha aluno cadastrado\n");break;} 
+				printf("digite o codigo do aluno q quer: ");scanf("%d",&auxx);
+				printaluno(period[per].headal,auxx); break;
+
 	       		}
 	}	
 }
