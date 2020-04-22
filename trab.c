@@ -22,7 +22,7 @@ typedef struct s2{
 }disciplina;
 
 typedef struct s3{
-	char periodo[6];
+	char periodo[7];
 	aluno *headal;//ponteiro que aponta para o primeiro elemento da lista encadeada dos alunos, em casa periodo
 	disciplina *headdisc;//ponteiro que aponta para o primeiro elemento da lista encadeada da disciplina, em casa periodo
 
@@ -120,6 +120,16 @@ void initperiod(periodo *p)//inicializar tds os ponteiros das listas encadeadas 
 	p[i].headal=NULL;
 	p[i].headdisc=NULL;
 	}
+	strcpy(p[0].periodo,"2016.1");
+	strcpy(p[1].periodo,"2016.2");
+	strcpy(p[2].periodo,"2017.1");
+	strcpy(p[3].periodo,"2017.2");
+	strcpy(p[4].periodo,"2018.1");
+	strcpy(p[5].periodo,"2018.2");
+	strcpy(p[6].periodo,"2019.1");
+	strcpy(p[7].periodo,"2019.2");
+	strcpy(p[8].periodo,"2020.1");
+	strcpy(p[9].periodo,"2020.2");
 	return;
 }//em cada periodo existente, faz os ponteiros das listas encadeadas apontarem para NULL. Isso e porque não há alunos nem disciplinas em nenhum periodo
 
@@ -328,15 +338,157 @@ int mudaperiodo(int x,char *string)
 	if(strcmp(string,"2020.1")==0){printf("periodo alterado para %s\n",string);return 8;}
 	if(strcmp(string,"2020.2")==0){printf("periodo alterado para %s\n",string);return 9;}
 	else{printf("periodo invalido: \n");return x;}
-
 }
+
+int mudaperiodo2(char *string)
+{
+	if(strcmp(string,"2016.1")==0){return 0;}
+	if(strcmp(string,"2016.2")==0){return 1;}
+	if(strcmp(string,"2017.1")==0){return 2;}
+	if(strcmp(string,"2017.2")==0){return 3;}
+	if(strcmp(string,"2018.1")==0){return 4;}
+	if(strcmp(string,"2018.2")==0){return 5;}
+	if(strcmp(string,"2019.1")==0){return 6;}
+	if(strcmp(string,"2019.2")==0){return 7;}
+	if(strcmp(string,"2020.1")==0){return 8;}
+	if(strcmp(string,"2020.2")==0){return 9;}
+	else{return 20;}
+}
+
+void inseredisc2(periodo *p, char *nome, char *prof, int codigo, int creditos)//funciona IGUAL o inseredisc, mas pro arquivo, em q n tem printf nenhum
+{
+	disciplina *disc; disc=p->headdisc;
+	if(disc==NULL)
+	{
+		disciplina *aux;
+		aux=(disciplina*)malloc(sizeof(disciplina));
+		strcpy(aux->nome,nome);		
+		strcpy(aux->prof,prof);
+		aux->cod=codigo;
+		aux->creditos=creditos;
+		aux->prox=NULL;
+		aux->qtde=0;
+		p->headdisc=aux;
+		return;
+	}
+	else
+	{
+		p->headdisc=disc;
+		if(disc->cod==codigo){return;}
+		while(disc->prox!=NULL)
+		{
+			disc=disc->prox;
+			if(disc->cod==codigo){return;}//se tiver outra disciplina com o mesmo codigo, nao faz nada
+		}
+		if(strcmp(disc->nome,nome)==0){return;}
+		while(disc->prox!=NULL)
+		{
+			disc=disc->prox;
+			if(strcmp(disc->nome,nome)==0){return;}//se tiver outra disciplina com o mesmo nome, nao faz nada
+		}
+		disciplina *aux;
+		aux=(disciplina*)malloc(sizeof(disciplina));
+		strcpy(aux->nome,nome);		
+		strcpy(aux->prof,prof);
+		aux->cod=codigo;
+		aux->creditos=creditos;
+		aux->prox=NULL;
+		aux->qtde=0;
+		disc->prox=aux;
+		return;
+	}
+}
+
+void insereal2(periodo *p,char *alunim,char *cpf, int codigo, char *materia)//o parametro de entrada é o endereço na memória de toda a struct do período que eu estou dentro. A partir dela, tenho acesso aos ponteiros que apontam para o início das listas encadeadas dos alunos e disciplinas. A partir daqui, é só trabalhar normalmente com uma lista encadeada
+{
+	aluno *al; al=p->headal;int l=0,m=0;
+	aluno *mod;//para armazenar o ponteiro do aluno que vou trabalhar
+	disciplina *disc; disc=p->headdisc;
+	if(al==NULL) //caso em que não há alunos cadastrados
+	{
+		aluno *aux; //struct que armazenará as informações do aluno
+		aux=(aluno*)malloc(sizeof(aluno));
+		strcpy(aux->nome,alunim);		
+		strcpy(aux->cpf,cpf);
+		aux->cod=codigo;
+		aux->prox=NULL;
+		aux->qtde=0;
+		p->headal=aux;//altera o valor do ponteiro que está dentro do período, para colocar o novo aluno como sendo a cabeça da lista
+		mod=aux;
+	}
+	else
+	{
+		p->headal=al;//apenas pra me assegurar de que não vou alterar o valor da cabeça da lista encadeada, acho que é desnecessário isso
+		if(al->cod==codigo){mod=al;l=1;}
+		while(al->prox!=NULL)
+		{
+			al=al->prox;
+			if(al->cod==codigo){mod=al;l=1;}
+		}//esse while é pra chegar até o final da lista, pra add o aluno depois dela
+		if(l==0){
+		aluno *aux;
+		aux=(aluno*)malloc(sizeof(aluno));
+		strcpy(aux->nome,alunim);		
+		strcpy(aux->cpf,cpf);
+		aux->cod=codigo;
+		aux->prox=NULL;//novo elemento aponta pra NULL
+		aux->qtde=0;
+		al->prox=aux;//faz o novo penultimo elemento apontar para o que acabei de criar
+		mod=aux;		
+				}
+	}
+		//a partir de agora tenho o aluno endereçado na struct mod, pra adicionar a matéria
+	if(strcmp(materia,"NaoHaMateria")==0){return;}
+	else{
+			while(disc!=NULL){	//verificação se existe a matéria cadastrada anteriormente:
+				if(strcmp(materia,disc->nome)==0){m=1;break;}	//se nao chegar nisso aqui, e pq a materia n existe no periodo e portanto nao aconteceu nada
+				disc=disc->prox;}
+
+	if(m==1){//ou seja, a materia existe mesmo
+			if(mod->qtde == MAXDISC){return;}//verifica se o aluno atingiu o limite dele. se sim, n faz nada
+			if(disc->qtde == MAXAL){return;}//msma coisa, pra disciplina. se sim, n faz nada
+
+			for(int k=0;k<mod->qtde;k++){if(strcmp(mod->disc[k],disc->nome)==0){return;}}//aluno ja cadastrado nessa disciplina
+
+			strcpy(mod->disc[mod->qtde], disc->nome);mod->qtde++;//adiciona a materia no vetor de string de disciplina do aluno, e aumenta a qtde de materias. essa qtde vai ser o índice para trabalharmos com esse vetor
+			strcpy(disc->al[disc->qtde], mod->nome);disc->qtde++;//adiciona o aluno no vetor de string de alunos da disciplina. msma coisa com a qtde
+			}
+		}
+	return;
+}
+
+
+
 
 int main()
 {
 	int d=1,per=0,auxx;//per - índice do período; d - opção escolhida no menu; auxx - valores inteiros que serão dados como entrada nas diversas opções do menu
 	char aux[50],mudaperiod[6];//aux - nome que sera dado como entrada nas diversas opções do menu
-	periodo *period;
+	periodo *period; FILE *al2,*disc2;
 	period=(periodo*)malloc(MAXPERIOD*sizeof(periodo));initperiod(period);
+	char nome_prof[50], nome_alu[50], nome_dis[50],perio[7],materia[50],cpf[12];
+    int cod_dis, n_cred, n_alu;
+
+    disc2 = fopen("testedisc.txt","r");
+    while(fscanf(disc2, "%6s %s %s %d %d", perio, nome_dis, nome_prof, &cod_dis, &n_cred) != EOF){
+	per=mudaperiodo2(perio);
+	if(per==20){}//se o periodo ta incorreto, o resto do while nao faz nada
+	else{//se o periodo ta correto:
+		inseredisc2(&period[per],nome_dis,nome_prof,cod_dis,n_cred);
+		}
+	}
+
+	al2 = fopen("testealunos.txt","r");
+    while(fscanf(al2, "%6s %s %d %s %s", perio, nome_alu,&n_alu, cpf, materia) != EOF){
+	per=mudaperiodo2(perio);
+	if(per==20){}//se o periodo ta incorreto, o resto do while nao faz nada
+	else{//se o periodo ta correto:
+		insereal2(&period[per],nome_alu,cpf,n_alu,materia);
+		}
+	}
+	fclose(disc2);
+	fclose(al2);
+
 	while(d!=0)
 	{
 		printf("\ndigite a opcao pretendida: ");
@@ -388,4 +540,37 @@ int main()
 					printdisc(period[per].headdisc,auxx);break;
 	       		}
 	}	
-}
+	disc2=fopen("testedisc.txt","w");//começo a gravação do txt das disciplinas
+	disciplina *disc3;
+	for(int y=0;y<10;y++)
+	{
+		disc3=period[y].headdisc;
+		while(disc3!=NULL)
+		{
+			fprintf(disc2,"%s %s %s %d %d\n", period[y].periodo,disc3->nome, disc3->prof, disc3->cod,disc3->creditos);
+			disc3=disc3->prox;
+		}
+	}//termino gravação do txt das disciplinas
+	fclose(disc2);
+	
+	al2=fopen("testealunos.txt","w");//começo a gravação do txt dos alunos
+	aluno *al3;char nomemat[50];
+		for(int y=0;y<10;y++)
+	{
+		al3=period[y].headal;
+		while(al3!=NULL)
+		{
+			if(al3->qtde==0){fprintf(al2,"%s %s %d %s NaoHaMateria\n",period[y].periodo, al3->nome,al3->cod,al3->cpf);}
+			else{
+				for(int t=0;t<al3->qtde;t++)
+				{
+				strcpy(nomemat,al3->disc[t]);
+				fprintf(al2,"%s %s %d %s %s\n",period[y].periodo, al3->nome,al3->cod,al3->cpf,nomemat);
+				}
+			}
+			al3=al3->prox;
+		}
+	}//termino gravação do txt dos alunos
+
+	fclose(al2);
+return 0;}
