@@ -1,12 +1,13 @@
-//este codigo le um arquivo de disciplinas com multiplas linhas no formato: "periodo(xxxx.x),nome,prof,codigo,creditos"
-//este codigo le um arquivo de alunos no formato: "periodo,nome,prof,codigo,materia cadastrada"
-//para cada materia, deve ser adicionada uma nova linha com o mesmo aluno e a matéria a ser adicionada
+//este codigo le um arquivo de disciplinas com multiplas linhas no formato: "periodo(xxxx.x) nome prof codigo creditos"
+//este codigo le um arquivo de alunos no formato: "periodo(xxxx.x) nome prof codigo materia cadastrada"
+//para cada materia que quer cadastrar para o aluno no arquivo, deve ser adicionada uma nova linha com o mesmo aluno e a matéria a ser adicionada
 //se quer adicionar o aluno sem matéria nenhuma, coloque "NHF" no lugar da matéria, que então ele entrará sem nenhuma matéria vinculada a ele
 //para todas as leituras, caso coloque um periodo invalido ou caso queira cadastrar um aluno ou disciplina novos com o código repetido, não acontecerá nada
 //é limitada a quantidade de disciplinas que cada aluno pode ter, e vice-versa, porém é permitido que se altere de forma fácil o limite, redefinindo os "#define" logo abaixo
 //este código aceita os períodos entre 2016.1 até 2020.2
 //este código destroi o arquivo de alunos e o arquivo de disciplinas ao final dele, e os recria com mesmo nome e colocando as atualizações
 //as buscas por aluno e disciplina ocorrem mediante os seus códigos
+//os alunos e disciplinas foram implementados usando lista encadeada, portanto não há limite de nenhum dos dois em cada período
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
@@ -18,6 +19,7 @@ char nome[50],cpf[11];
 struct s1 *prox; //aponta pro prox elemento da lista encadeada
 char disc[MAXDISC][50]; //vetor que armazena os nomes das disciplinas que aluno cadastrou
 int qtde;//indice que indica quantas disciplinas cada aluno tem no momento
+
 }aluno;	
 
 typedef struct s2{
@@ -309,14 +311,20 @@ void tiradiscaluno(aluno *al, disciplina *disc)
 
 void printaluno(aluno *al, int cod)//lista todas as caracteristicas de um aluno atraves do codigo dele, incluindo as disciplinas cadastradas
 {
-	while(al->cod!=cod){al=al->prox; if(al==NULL){printf("nao encontrou o aluno\n");return;} }//percorre a lista procurando o aluno. se n achar, printa essa msg
+	while(al->cod!=cod){
+		al=al->prox;
+		if(al==NULL){printf("nao encontrou o aluno\n");return;}
+					   }//percorre a lista procurando o aluno. se n achar, printa essa msg
 	printf("nome: %s\n",al->nome);
 	printf("cpf: %s\n",al->cpf);
 	printf("codigo: %d\n",al->cod);
 	printf("disciplinas cadastradas: \n");
 	char aux[50];
-	for(int k=0;k<al->qtde;k++){strcpy(aux,al->disc[k]);
-		printf("%s\n",aux);}//printa as disciplinas em que o aluno ta cadastrado.
+	for(int k=0;k<al->qtde;k++)
+	{
+		strcpy(aux,al->disc[k]);
+		printf("%s\n",aux);
+	}//printa as disciplinas em que o aluno ta cadastrado.
 
 	return;
 }
@@ -330,8 +338,11 @@ void printdisc(disciplina *disc, int cod)//funciona IGUAL o printaluno
 	printf("creditos: %d\n",disc->creditos);
 	printf("alunos cadastrados: \n");
 	char aux[50];
-	for(int k=0;k<disc->qtde;k++){strcpy(aux,disc->al[k]);
-		printf("%s\n",aux);}
+	for(int k=0;k<disc->qtde;k++)
+	{
+		strcpy(aux,disc->al[k]);
+		printf("%s\n",aux);
+	}
 	return;
 }
 
@@ -497,53 +508,95 @@ int main()
 	fclose(disc2);
 	fclose(al2);
 
+	printf("qual o periodo voce quer entrar, entre 2016.1 - 2020.2?: "); //pede o periodo logo no inicio do programa
+	scanf("%s",mudaperiod);
+	per=mudaperiodo(per,mudaperiod);
+
 	while(d!=0)
 	{
 		printf("\ndigite a opcao pretendida: ");
-		printf("\n1)mudar periodo(formato xxxx.x)\n2)inserir aluno\n3)remover aluno\n4)inserir disciplina para um aluno\n");
-		printf("5)remover disciplina para um aluno\n6)cadastrar disciplina\n7)excluir disciplina\n");
-		printf("8)listar alunos\n9)listardisciplinas\n10)listarcaracaluno\n11)listcaracdisc\n0)finalizar programa   : ");
-		
+		printf("\n1)Mudar Periodo(formato xxxx.x)\n2)Cadastrar aluno novo no periodo\n");
+		printf("3)Remover aluno do periodo\n4)Inserir disciplina para um aluno\n");
+		printf("5)Remover disciplina de um aluno\n6)Cadastrar disciplina nova no periodo\n");
+		printf("7)Excluir disciplina do periodo\n8)Listar alunos do periodo\n");
+		printf("9)Listar disciplinas do periodo\n");
+		printf("10)Exibir todas informacoes de um aluno\n");
+		printf("11)Exibir todas informacoes de uma disciplina\n0)finalizar programa   : ");
+
 		scanf("%d",&d);
 		switch(d){
 			case 1:
-			  	printf("qual o periodo voce quer entrar, entre 2016.1 - 2020.2?: ");scanf("%s",mudaperiod);per=mudaperiodo(per,mudaperiod);break;
+			  	  	printf("qual o periodo voce quer entrar, entre 2016.1 - 2020.2?: ");
+				 	scanf("%s",mudaperiod);
+					per=mudaperiodo(per,mudaperiod);
+					break;
 			
 			case 2: 
-			insereal(&period[per]);
+					insereal(&period[per]);
 			       	break;	
 			
-			case 3:if(period[per].headal==NULL){printf("nao ha aluno para ser removido\n");} 
-					else{printf("digite o codigo do aluno que quer ser removido: ");scanf("%d",&auxx);
-						excluialuno(&period[per],auxx);}   break;
+			case 3: 
+					if(period[per].headal==NULL){printf("nao ha aluno para ser removido\n");} 
+					else{
+						printf("digite o codigo do aluno que quer ser removido: ");
+						scanf("%d",&auxx);
+						excluialuno(&period[per],auxx);
+						}
+					break;
 			
-			case 4:  if(period[per].headal==NULL){printf("nao ha alunos\n");break;} 
+			case 4: 
+					if(period[per].headal==NULL){printf("nao ha alunos\n");break;} 
 					if(period[per].headdisc==NULL){printf("nao ha disciplinas\n");break;} 
 					poediscaluno(period[per].headal,period[per].headdisc); break;
 			
-			case 5:  if(period[per].headal==NULL){printf("nao ha alunos\n");break;} 
+			case 5: 
+					if(period[per].headal==NULL){printf("nao ha alunos\n");break;} 
 					if(period[per].headdisc==NULL){printf("nao ha disciplinas\n");break;} 
 					tiradiscaluno(period[per].headal,period[per].headdisc); break;
 			
-			case 6: inseredisc(&period[per]); break;
+			case 6: 
+					inseredisc(&period[per]);
+					break;
 			
-			case 7:if(period[per].headdisc==NULL){printf("nao ha disciplina para ser removida\n");} 
-				     else{printf("digite o codigo da disciplina que quer ser removida: ");scanf("%d",&auxx);
-					 excluidisc(&period[per],auxx);} break;
+			case 7: 
+					if(period[per].headdisc==NULL){
+						printf("nao ha disciplina para ser removida\n");
+												  } 
+				    else{
+						printf("digite o codigo da disciplina que quer ser removida: ");
+						scanf("%d",&auxx);
+						excluidisc(&period[per],auxx);
+						}
+					break;
 			
-			case 8: listaluno(period[per].headal);break;
+			case 8: 
+					printf("Período atual: %s\n",period[per].periodo);
+					listaluno(period[per].headal);
+					break;
 
-			case 9: listdisciplina(period[per].headdisc); break;
+			case 9: 
+					printf("Período atual: %s\n",period[per].periodo);
+					listdisciplina(period[per].headdisc);
+					break;
 			
 			case 10: 
-				if(period[per].headal==NULL){printf("nao ha aluno cadastrado\n");break;} 
-				printf("digite o codigo do aluno q quer: ");scanf("%d",&auxx);
-				printaluno(period[per].headal,auxx); break;
+					if(period[per].headal==NULL){
+						printf("nao ha aluno cadastrado\n");break;
+												} 
+					printf("digite o codigo do aluno q quer: ");
+					scanf("%d",&auxx);
+					printaluno(period[per].headal,auxx);
+					break;
 
 			case 11:	
-					if(period[per].headdisc==NULL){printf("nao ha disciplina cadastrada\n");break;} 
-					printf("digite o codigo da disciplina q quer: ");scanf("%d",&auxx);
-					printdisc(period[per].headdisc,auxx);break;
+					if(period[per].headdisc==NULL){
+						printf("nao ha disciplina cadastrada\n");
+						break;
+												  } 
+					printf("digite o codigo da disciplina q quer: ");
+					scanf("%d",&auxx);
+					printdisc(period[per].headdisc,auxx);
+					break;
 	       		}
 	}	
 	disc2=fopen("testedisc.txt","w");//começo a gravação do txt das disciplinas
@@ -560,13 +613,16 @@ int main()
 	fclose(disc2);
 	
 	al2=fopen("testealunos.txt","w");//começo a gravação do txt dos alunos
-	aluno *al3;char nomemat[50];
+	aluno *al3;
+	char nomemat[50];
 		for(int y=0;y<10;y++)
 	{
 		al3=period[y].headal;
 		while(al3!=NULL)
 		{
-			if(al3->qtde==0){fprintf(al2,"%s %s %d %s NHM\n",period[y].periodo, al3->nome,al3->cod,al3->cpf);}
+			if(al3->qtde==0){
+				fprintf(al2,"%s %s %d %s NHM\n",period[y].periodo, al3->nome,al3->cod,al3->cpf);
+							}
 			else{
 				for(int t=0;t<al3->qtde;t++)
 				{
@@ -578,4 +634,5 @@ int main()
 		}
 	}//termino gravação do txt dos alunos
 	fclose(al2);
-return 0;}
+ return 0;
+}
