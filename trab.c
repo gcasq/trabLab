@@ -1,13 +1,22 @@
+//Alunos: Gustavo Alves Casqueiro 18036
+//		  Harllon Oliveira da Paz 18038
+
+//ORIENTAÇÃO SOBRE AS FORMATAÇÕES DO PROGRAMA:
+
+//nao sao aceitos espaços em nenhum dos nomes
 //este codigo le um arquivo de disciplinas com multiplas linhas no formato: "periodo(xxxx.x) nome prof codigo creditos"
 //este codigo le um arquivo de alunos no formato: "periodo(xxxx.x) nome prof codigo materia cadastrada"
 //para cada materia que quer cadastrar para o aluno no arquivo, deve ser adicionada uma nova linha com o mesmo aluno e a matéria a ser adicionada
-//se quer adicionar o aluno sem matéria nenhuma, coloque "NHF" no lugar da matéria, que então ele entrará sem nenhuma matéria vinculada a ele
+//se quer adicionar o aluno sem matéria nenhuma, coloque "NHM" no lugar da matéria, que então ele entrará sem nenhuma matéria vinculada a ele
 //para todas as leituras, caso coloque um periodo invalido ou caso queira cadastrar um aluno ou disciplina novos com o código repetido, não acontecerá nada
 //é limitada a quantidade de disciplinas que cada aluno pode ter, e vice-versa, porém é permitido que se altere de forma fácil o limite, redefinindo os "#define" logo abaixo
 //este código aceita os períodos entre 2016.1 até 2020.2
 //este código destroi o arquivo de alunos e o arquivo de disciplinas ao final dele, e os recria com mesmo nome e colocando as atualizações
 //as buscas por aluno e disciplina ocorrem mediante os seus códigos
 //os alunos e disciplinas foram implementados usando lista encadeada, portanto não há limite de nenhum dos dois em cada período
+//caso no arquivo de leitura de alunos o código não tenha 5 dígitos, este não será cadastrado
+//caso no arquivo de leitura de disciplinas o código não tenha 4 dígitos, esta não será cadastrada
+
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
@@ -45,6 +54,10 @@ void insereal(periodo *p)//o parametro de entrada é o endereço na memória de 
 	printf("digite o nome do al: ");scanf("%s",alunim);
 	printf("digite o cpf do al: ");scanf("%s",cpf);
 	printf("digite o cod do al: ");scanf("%d",&codigo);
+	if(codigo<10000||codigo>99999){
+		printf("Codigo com quantidade invalida de digitos. Deve ser de 5 digitos. \n");
+		return;
+								  }
 	aluno *al; al=p->headal; //al - serve apenas para armazenar o ponteiro para o começo da lista encadeada dos alunos
 	if(al==NULL) //caso em que não há alunos cadastrados
 	{
@@ -56,6 +69,7 @@ void insereal(periodo *p)//o parametro de entrada é o endereço na memória de 
 		aux->prox=NULL;
 		aux->qtde=0;
 		p->headal=aux;//altera o valor do ponteiro que está dentro do período, para colocar o novo aluno como sendo a cabeça da lista
+		printf("aluno %s cadastrado com sucesso\n",aux->nome);
 		return;
 	}
 	else
@@ -76,13 +90,10 @@ void insereal(periodo *p)//o parametro de entrada é o endereço na memória de 
 		aux->prox=NULL;//novo elemento aponta pra NULL
 		aux->qtde=0;
 		al->prox=aux;//faz o novo penultimo elemento apontar para o que acabei de criar
+		printf("aluno %s cadastrado com sucesso\n",aux->nome);
 		return;
 	}
 }
-//obs: o insereal precisa do periodo como parametro de entrada na função, e o listaluno apenas 
-//precisa do ponteiro que aponta pra cabeça da lista, sem necessitar do periodo. Isso é porque 
-//o listaluno não altera nada, apenas printa, enquanto que o insereal eu preciso alterar qual é
-//o ponteiro para a cabeça da lista no caso em que inicialmente não havia aluno algum (linha 48)
 
 void listaluno(aluno *al)//ta listando so os codigos dos alunos, e mais facil q os nomes. O parametro de entrada é o ponteiro para a cabeça da lista encadeada dos alunos
 {
@@ -167,6 +178,10 @@ void inseredisc(periodo *p)//funciona IGUAL o insereal, só diferencia nos dados
 	printf("digite o nome da disc: ");scanf("%s",nome);
 	printf("digite o nome do prof : ");scanf("%s",prof);
 	printf("digite o cod da disc: ");scanf("%d",&codigo);
+	if(codigo<1000||codigo>9999){
+		printf("Codigo com quantidade invalida de digitos. Deve ser de 4 digitos. \n");
+		return;
+								}
 	printf("digite a qtde de creditos: ");scanf("%d",&creditos);
 
 	disciplina *disc; disc=p->headdisc;
@@ -181,6 +196,7 @@ void inseredisc(periodo *p)//funciona IGUAL o insereal, só diferencia nos dados
 		aux->prox=NULL;
 		aux->qtde=0;
 		p->headdisc=aux;
+		printf("disciplina %s cadastrada com sucesso\n",aux->nome);
 		return;
 	}
 	else
@@ -202,6 +218,7 @@ void inseredisc(periodo *p)//funciona IGUAL o insereal, só diferencia nos dados
 		aux->prox=NULL;
 		aux->qtde=0;
 		disc->prox=aux;
+		printf("disciplina %s cadastrada com sucesso\n",aux->nome);
 		return;
 	}
 }
@@ -242,11 +259,11 @@ void excluidisc(periodo *p,int dis)//excluir atraves do codigo da disc. Funciona
 {		
 	int b=0; char auxx[50];
 	disciplina *disc; disc=p->headdisc;
-	if(dis==disc->cod){p->headdisc=disc->prox;
-
-	tiradiscalunoadp(p->headal,disc->nome);//exclui a disciplina de cada um dos alunos do periodo
-
-	free(disc);}//se a disc q quer excluir e o primeiro da lista
+	if(dis==disc->cod){
+		p->headdisc=disc->prox;
+		tiradiscalunoadp(p->headal,disc->nome);//exclui a disciplina de cada um dos alunos do periodo
+		free(disc);
+					  }//se a disc q quer excluir e o primeiro da lista
 	else{
 			p->headdisc=disc;
 			disciplina *ant;
@@ -276,11 +293,18 @@ void poediscaluno(aluno *al, disciplina *disc)//os parametros de entrada são os
 	if(al->qtde == MAXDISC){printf("aluno cheio de materia\n");return;}//verifica se o aluno atingiu o limite dele
 	if(disc->qtde == MAXAL){printf("disciplina lotada\n");return;}//msma coisa, pra disciplina
 
-	for(int k=0;k<al->qtde;k++){if(strcmp(al->disc[k],disc->nome)==0){printf("aluno ja cadastrado nessa disciplina!\n");return;}  }//aluno já se cadastrou na disciplina
+	for(int k=0;k<al->qtde;k++)
+	{
+		if(strcmp(al->disc[k],disc->nome)==0)
+		{
+			printf("aluno ja cadastrado nessa disciplina!\n");
+			return;
+		}  
+	}//aluno já se cadastrou na disciplina
 
 	strcpy(al->disc[al->qtde], disc->nome);al->qtde++;//adiciona a materia no vetor de string de disciplina do aluno, e aumenta a qtde de materias. essa qtde vai ser o índice para trabalharmos com esse vetor
 	strcpy(disc->al[disc->qtde], al->nome);disc->qtde++;//adiciona o aluno no vetor de string de alunos da disciplina. msma coisa com a qtde
-
+	printf("aluno %s cadastrado com sucesso na disciplina %s\n",al->nome,disc->nome);
 	return;
 }
 
@@ -294,17 +318,16 @@ void tiradiscaluno(aluno *al, disciplina *disc)
 	while(disc->cod!=coddisc){disc=disc->prox;	if(disc==NULL){printf("disciplina nao encontrada");return;}}	//ja tenho a disc
 	for(k=0;k<al->qtde;k++)
 	{	
-		//if(strcmp(al->disc + k,disc->nome)==0){break;}
 		if(strcmp(al->disc[k],disc->nome)==0){break;}
-
 	}
-	strcpy(al->disc[k], al->disc[al->qtde-1]); al->qtde--; //tirando a disc do aluno (meio xereu)
+	strcpy(al->disc[k], al->disc[al->qtde-1]); al->qtde--; //tirando a disc do aluno
 
 	for(k=0;k<disc->qtde;k++)
 	{		
 		if(strcmp(disc->al[k],al->nome)==0){break;}
 	}
 	strcpy(disc->al[k], disc->al[disc->qtde-1]); disc->qtde--; //tirando aluno da disc
+	printf("aluno %s retirado com sucesso da disciplina %s\n",al->nome,disc->nome);
 
 	return;
 }
@@ -331,7 +354,7 @@ void printaluno(aluno *al, int cod)//lista todas as caracteristicas de um aluno 
 
 void printdisc(disciplina *disc, int cod)//funciona IGUAL o printaluno
 {
-	while(disc->cod!=cod){disc=disc->prox; if(disc==NULL){printf("nao encontrou a disciplina\n");return;} }
+	while(disc->cod!=cod){disc=disc->prox; if(disc==NULL){printf("nao encontrou a disciplina\n");return;}}
 	printf("nome: %s\n",disc->nome);
 	printf("prof: %s\n",disc->prof);
 	printf("codigo: %d\n",disc->cod);
@@ -358,7 +381,7 @@ int mudaperiodo(int x,char *string)
 	if(strcmp(string,"2019.2")==0){printf("periodo alterado para %s\n",string);return 7;}
 	if(strcmp(string,"2020.1")==0){printf("periodo alterado para %s\n",string);return 8;}
 	if(strcmp(string,"2020.2")==0){printf("periodo alterado para %s\n",string);return 9;}
-	else{printf("periodo invalido: \n");return x;}
+	else{printf("periodo invalido. Voce continuara no periodo anterior. \n",string);return x;}
 }
 
 int mudaperiodo2(char *string)
@@ -459,8 +482,7 @@ void insereal2(periodo *p,char *alunim,char *cpf, int codigo, char *materia)//o 
 				}
 	}
 		//a partir de agora tenho o aluno endereçado na struct mod, pra adicionar a matéria
- //	if(strcmp(materia,"NaoHaMateria")==0){return;}
-	if(strcmp(materia,"NHM")==0){return;}	
+	if(strcmp(materia,"NHM")==0){return;}//nao adiciona materia nenhuma	
 	else{
 			while(disc!=NULL){	//verificação se existe a matéria cadastrada anteriormente:
 				if(strcmp(materia,disc->nome)==0){m=1;break;}	//se nao chegar nisso aqui, e pq a materia n existe no periodo e portanto nao aconteceu nada
@@ -489,11 +511,14 @@ int main()
     int cod_dis, n_cred, n_alu;
 
     disc2 = fopen("testedisc.txt","r");
-    while(fscanf(disc2, "%6s %s %s %d %d", perio, nome_dis, nome_prof, &cod_dis, &n_cred) != EOF){
+    while(fscanf(disc2,"%6s %s %s %d %d", perio, nome_dis, nome_prof, &cod_dis, &n_cred) != EOF){
 	per=mudaperiodo2(perio);
-	if(per==20){}//se o periodo ta incorreto, o resto do while nao faz nada
+	if(per==20){}//se o periodo ta incorreto, o resto do while nao faz nada e nao cadastra o aluno
 	else{//se o periodo ta correto:
-		inseredisc2(&period[per],nome_dis,nome_prof,cod_dis,n_cred);
+		if(cod_dis<1000||cod_dis>9999){}//se o codigo nao tem 4 digitos, o resto do while nao faz nada e nao cadastra a disciplina
+		else{
+			inseredisc2(&period[per],nome_dis,nome_prof,cod_dis,n_cred);
+			}
 		}
 	}
 
@@ -502,19 +527,22 @@ int main()
 	per=mudaperiodo2(perio);
 	if(per==20){}//se o periodo ta incorreto, o resto do while nao faz nada
 	else{//se o periodo ta correto:
+		if(n_alu<10000||n_alu>99999){}//se o cod do aluno nao tem 5 digitos, o resto do while nao faz nada e nao cadastra o aluno
+		else{
 		insereal2(&period[per],nome_alu,cpf,n_alu,materia);
+			}
 		}
 	}
 	fclose(disc2);
 	fclose(al2);
 
-	printf("qual o periodo voce quer entrar, entre 2016.1 - 2020.2?: "); //pede o periodo logo no inicio do programa
+	printf("Digite o periodo que voce quer entrar, entre 2016.1 - 2020.2?: "); //pede o periodo logo no inicio do programa
 	scanf("%s",mudaperiod);
 	per=mudaperiodo(per,mudaperiod);
 
 	while(d!=0)
 	{
-		printf("\ndigite a opcao pretendida: ");
+		printf("\nDigite a opcao pretendida: ");
 		printf("\n1)Mudar Periodo(formato xxxx.x)\n2)Cadastrar aluno novo no periodo\n");
 		printf("3)Remover aluno do periodo\n4)Inserir disciplina para um aluno\n");
 		printf("5)Remover disciplina de um aluno\n6)Cadastrar disciplina nova no periodo\n");
@@ -526,7 +554,7 @@ int main()
 		scanf("%d",&d);
 		switch(d){
 			case 1:
-			  	  	printf("qual o periodo voce quer entrar, entre 2016.1 - 2020.2?: ");
+			  	  	printf("Digite o periodo que voce quer entrar, entre 2016.1 - 2020.2?: ");
 				 	scanf("%s",mudaperiod);
 					per=mudaperiodo(per,mudaperiod);
 					break;
