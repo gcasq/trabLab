@@ -1,9 +1,17 @@
+//este codigo le um arquivo de disciplinas com multiplas linhas no formato: "periodo(xxxx.x),nome,prof,codigo,creditos"
+//este codigo le um arquivo de alunos no formato: "periodo,nome,prof,codigo,materia cadastrada"
+//para cada materia, deve ser adicionada uma nova linha com o mesmo aluno e a matéria a ser adicionada
+//se quer adicionar o aluno sem matéria nenhuma, coloque "NHF" no lugar da matéria, que então ele entrará sem nenhuma matéria vinculada a ele
+//para todas as leituras, caso coloque um periodo invalido ou caso queira cadastrar um aluno ou disciplina novos com o código repetido, não acontecerá nada
+//é limitada a quantidade de disciplinas que cada aluno pode ter, e vice-versa, porém é permitido que se altere de forma fácil o limite, redefinindo os "#define" logo abaixo
+//este código aceita os períodos entre 2016.1 até 2020.2
+//este código destroi o arquivo de alunos e o arquivo de disciplinas ao final dele, e os recria com mesmo nome e colocando as atualizações
+//as buscas por aluno e disciplina ocorrem mediante os seus códigos
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
 #define MAXDISC 10
 #define MAXAL 50
-#define MAXPERIOD 10
 typedef struct s1{
 int cod;
 char nome[50],cpf[11];
@@ -89,6 +97,23 @@ void listaluno(aluno *al)//ta listando so os codigos dos alunos, e mais facil q 
 		}
 }
 
+void tiraaldiscadp(disciplina *disc, char *nomeal)//usado qdo exclui um aluno, pra retirar ele de tds as disciplinas
+{	
+	int k,cont;
+	
+	while(disc!=NULL){
+		cont=0;
+	for(k=0;k<disc->qtde;k++)
+	{	
+		if(strcmp(disc->al[k],nomeal)==0){cont=1;break;}
+	}
+	if(cont==1){strcpy(disc->al[k], disc->al[disc->qtde-1]); disc->qtde--;} //tirando o aluno da disc (meio xereu)
+	
+	disc=disc->prox;
+	}
+	return;
+}//essa função é chamada automaticamente qdo excluo o aluno
+
 void excluialuno(periodo *p,int alu)//o parametro de entrada é o período e o código do aluno que quero retirar
 {		
 	int b=0;
@@ -131,7 +156,7 @@ void initperiod(periodo *p)//inicializar tds os ponteiros das listas encadeadas 
 	strcpy(p[8].periodo,"2020.1");
 	strcpy(p[9].periodo,"2020.2");
 	return;
-}//em cada periodo existente, faz os ponteiros das listas encadeadas apontarem para NULL. Isso e porque não há alunos nem disciplinas em nenhum periodo
+}//em cada periodo existente, faz os ponteiros das listas encadeadas apontarem para NULL. Isso e porque não há alunos nem disciplinas em nenhum periodo no momento em que é criado
 
 void inseredisc(periodo *p)//funciona IGUAL o insereal, só diferencia nos dados
 {
@@ -193,6 +218,23 @@ void listdisciplina(disciplina *disc)//funciona IGUAL o listaluno
 				printf("%d\n",disc->cod);
 		}
 }
+
+void tiradiscalunoadp(aluno *al, char *nomedisc)//usado qdo excluo disciplina do periodo, pra tirar ela de tds os alunos.
+{	
+	int k,cont;//cont e um auxiliar, pra caso de fato o aluno tenha a disciplina
+	
+	while(al!=NULL){
+		cont=0;
+	for(k=0;k<al->qtde;k++)
+	{	
+		if(strcmp(al->disc[k],nomedisc)==0){cont=1;break;}//pra entrar no if, o al tem a disciplina
+	}
+	if(cont==1){strcpy(al->disc[k], al->disc[al->qtde-1]); al->qtde--;} //excluo a disciplina do aluno
+	
+	al=al->prox;
+	}
+	return;
+}//essa funcao é chamada automaticamente qdo excluo a disciplina
 
 void excluidisc(periodo *p,int dis)//excluir atraves do codigo da disc. Funciona IGUAL o excluialuno
 {		
@@ -264,41 +306,6 @@ void tiradiscaluno(aluno *al, disciplina *disc)
 
 	return;
 }
-//melhorar
-
-void tiradiscalunoadp(aluno *al, char *nomedisc)//usado qdo excluo disciplina do periodo, pra tirar ela de tds os alunos.
-{	
-	int k,cont;//cont e um auxiliar, pra caso de fato o aluno tenha a disciplina
-	
-	while(al!=NULL){
-		cont=0;
-	for(k=0;k<al->qtde;k++)
-	{	
-		if(strcmp(al->disc[k],nomedisc)==0){cont=1;break;}//pra entrar no if, o al tem a disciplina
-	}
-	if(cont==1){strcpy(al->disc[k], al->disc[al->qtde-1]); al->qtde--;} //excluo a disciplina do aluno
-	
-	al=al->prox;
-	}
-	return;
-}//essa funcao é chamada automaticamente qdo excluo a disciplina
-
-void tiraaldiscadp(disciplina *disc, char *nomeal)//usado qdo exclui um aluno, pra retirar ele de tds as disciplinas
-{	
-	int k,cont;
-	
-	while(disc!=NULL){
-		cont=0;
-	for(k=0;k<disc->qtde;k++)
-	{	
-		if(strcmp(disc->al[k],nomeal)==0){cont=1;break;}
-	}
-	if(cont==1){strcpy(disc->al[k], disc->al[disc->qtde-1]); disc->qtde--;} //tirando o aluno da disc (meio xereu)
-	
-	disc=disc->prox;
-	}
-	return;
-}//essa função é chamada automaticamente qdo excluo o aluno
 
 void printaluno(aluno *al, int cod)//lista todas as caracteristicas de um aluno atraves do codigo dele, incluindo as disciplinas cadastradas
 {
@@ -307,8 +314,9 @@ void printaluno(aluno *al, int cod)//lista todas as caracteristicas de um aluno 
 	printf("cpf: %s\n",al->cpf);
 	printf("codigo: %d\n",al->cod);
 	printf("disciplinas cadastradas: \n");
-	
-	for(int k=0;k<al->qtde;k++){printf("%s\n",al->disc + k);}//printa as disciplinas em que o aluno ta cadastrado.
+	char aux[50];
+	for(int k=0;k<al->qtde;k++){strcpy(aux,al->disc[k]);
+		printf("%s\n",aux);}//printa as disciplinas em que o aluno ta cadastrado.
 
 	return;
 }
@@ -321,7 +329,9 @@ void printdisc(disciplina *disc, int cod)//funciona IGUAL o printaluno
 	printf("codigo: %d\n",disc->cod);
 	printf("creditos: %d\n",disc->creditos);
 	printf("alunos cadastrados: \n");
-	for(int k=0;k<disc->qtde;k++){printf("%s\n",disc->al + k);}
+	char aux[50];
+	for(int k=0;k<disc->qtde;k++){strcpy(aux,disc->al[k]);
+		printf("%s\n",aux);}
 	return;
 }
 
@@ -438,7 +448,8 @@ void insereal2(periodo *p,char *alunim,char *cpf, int codigo, char *materia)//o 
 				}
 	}
 		//a partir de agora tenho o aluno endereçado na struct mod, pra adicionar a matéria
-	if(strcmp(materia,"NaoHaMateria")==0){return;}
+ //	if(strcmp(materia,"NaoHaMateria")==0){return;}
+	if(strcmp(materia,"NHM")==0){return;}	
 	else{
 			while(disc!=NULL){	//verificação se existe a matéria cadastrada anteriormente:
 				if(strcmp(materia,disc->nome)==0){m=1;break;}	//se nao chegar nisso aqui, e pq a materia n existe no periodo e portanto nao aconteceu nada
@@ -457,15 +468,12 @@ void insereal2(periodo *p,char *alunim,char *cpf, int codigo, char *materia)//o 
 	return;
 }
 
-
-
-
 int main()
 {
 	int d=1,per=0,auxx;//per - índice do período; d - opção escolhida no menu; auxx - valores inteiros que serão dados como entrada nas diversas opções do menu
-	char aux[50],mudaperiod[6];//aux - nome que sera dado como entrada nas diversas opções do menu
+	char mudaperiod[6];//aux - nome que sera dado como entrada nas diversas opções do menu
 	periodo *period; FILE *al2,*disc2;
-	period=(periodo*)malloc(MAXPERIOD*sizeof(periodo));initperiod(period);
+	period=(periodo*)malloc(10*sizeof(periodo));initperiod(period);
 	char nome_prof[50], nome_alu[50], nome_dis[50],perio[7],materia[50],cpf[12];
     int cod_dis, n_cred, n_alu;
 
@@ -499,11 +507,9 @@ int main()
 		scanf("%d",&d);
 		switch(d){
 			case 1:
-			  	printf("qual o periodo voce quer entrar, entre 2016.1 - 2020.2?: ");scanf("%s",mudaperiod);per=mudaperiodo(per,mudaperiod);printf("de numero %d\n",per);break;
-				  //printf("qual o periodo voce quer entrar, entre 2016.1 - 2020.2?: ");scanf("%d",&per); break;
+			  	printf("qual o periodo voce quer entrar, entre 2016.1 - 2020.2?: ");scanf("%s",mudaperiod);per=mudaperiodo(per,mudaperiod);break;
 			
 			case 2: 
-			//insereal(period[per].headal,period[per]);	
 			insereal(&period[per]);
 			       	break;	
 			
@@ -560,7 +566,7 @@ int main()
 		al3=period[y].headal;
 		while(al3!=NULL)
 		{
-			if(al3->qtde==0){fprintf(al2,"%s %s %d %s NaoHaMateria\n",period[y].periodo, al3->nome,al3->cod,al3->cpf);}
+			if(al3->qtde==0){fprintf(al2,"%s %s %d %s NHM\n",period[y].periodo, al3->nome,al3->cod,al3->cpf);}
 			else{
 				for(int t=0;t<al3->qtde;t++)
 				{
@@ -571,6 +577,5 @@ int main()
 			al3=al3->prox;
 		}
 	}//termino gravação do txt dos alunos
-
 	fclose(al2);
 return 0;}
